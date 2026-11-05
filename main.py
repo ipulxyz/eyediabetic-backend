@@ -1,15 +1,23 @@
 import base64
 from datetime import datetime
 from io import BytesIO
+import json
+import os
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 import firebase_admin
 from firebase_admin import credentials, firestore
 from PIL import Image
 
-# 1. Inisialisasi Firebase Admin SDK
+# 1. Inisialisasi Firebase Admin SDK (Mendukung Lokal & Cloud)
 if not firebase_admin._apps:
-  cred = credentials.Certificate("serviceAccountKey.json")
-  firebase_admin.initialize_app(cred)
+    if os.path.exists("serviceAccountKey.json"):
+        # Jika dijalankan di PC lokal
+        cred = credentials.Certificate("serviceAccountKey.json")
+    else:
+        # Jika dijalankan di Cloud (Render) via Environment Variable
+        cred_json = json.loads(os.environ.get("FIREBASE_CREDENTIALS_JSON"))
+        cred = credentials.Certificate(cred_json)
+    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
